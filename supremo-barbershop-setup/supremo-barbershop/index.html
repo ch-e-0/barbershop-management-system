@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Supremo Barbershop</title>
+<link rel="icon" href="img/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <img class="logo-mark" src="img/logo.jpg" alt="Supremo Barbershop logo">
+      <div>
+        <div class="brand-name" data-shop-name>Supremo Barbershop</div>
+        <div class="brand-sub">Book your next look</div>
+      </div>
+    </a>
+    <div class="header-actions">
+      <a class="btn ghost" href="login.html">Log in</a>
+      <a class="btn" href="register.html">Create account</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <img class="hero-logo" src="img/logo.jpg" alt="Supremo Barbershop logo">
+    <h1 data-shop-name>Supremo Barbershop</h1>
+    <p>Pick a service, choose your barber, and book a time that works for you. You can also see each barber's rating from previous customers.</p>
+    <div class="btn-row">
+      <a class="btn" href="register.html">Book now</a>
+      <a class="btn ghost" href="login.html">I already have an account</a>
+    </div>
+    <div id="promoStrip" style="margin-top:26px;"></div>
+  </section>
+
+  <section class="page" style="padding-top:0;">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>Our services</h2>
+          <p class="muted lead">Current prices. These may change when a promo is applied.</p>
+        </div>
+      </div>
+      <div id="servicesArea"><p class="muted lead">Loading services...</p></div>
+    </div>
+
+    <h3 class="section-title">Three kinds of account</h3>
+    <div class="role-grid">
+      <div class="card role-card">
+        <h3>Customer</h3>
+        <p class="muted">Register on your own, book an appointment, use a promo code, and leave feedback after your service.</p>
+      </div>
+      <div class="card role-card">
+        <h3>Barber</h3>
+        <p class="muted">The admin creates the barber's login. A barber can see their own appointments and set their days off.</p>
+      </div>
+      <div class="card role-card">
+        <h3>Admin</h3>
+        <p class="muted">Manages appointments, services, barbers, and promos, and can view the analytics and sales forecast.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+// Ilagay ang pangalan ng shop sa header at sa hero.
+loadShopName();
+
+
+// Kapag naka-login na siya, palitan ang mga button sa itaas
+// ng shortcut papunta sa dashboard.
+getSession().then(function (session) {
+  if (!session.loggedIn) {
+    return;
+  }
+
+  document.querySelector(".header-actions").innerHTML =
+    '<span class="badge" id="userBadge">' + escapeHtml(session.fullName) + "</span>" +
+    '<a class="btn" href="dashboard.html">Go to dashboard</a>';
+});
+
+
+// Ipakita ang unang promo na pwedeng gamitin ngayon.
+runServer("getActivePromos").then(function (promos) {
+  if (promos.length == 0) {
+    return;
+  }
+
+  var promo = promos[0];
+
+  var discountText = promo.discountValue + "% off";
+  if (promo.discountType == "Fixed") {
+    discountText = peso(promo.discountValue) + " off";
+  }
+
+  var description = promo.description;
+  if (!description) {
+    description = discountText;
+  }
+
+  document.getElementById("promoStrip").innerHTML =
+    '<div class="promo-strip">' +
+      "<strong>Promo:</strong>" +
+      "<span>" + escapeHtml(description) + "</span>" +
+      '<span class="promo-code">' + escapeHtml(promo.code) + "</span>" +
+      '<span class="muted">until ' + formatDate(promo.validTo) + "</span>" +
+    "</div>";
+}).catch(function () {
+  // Kapag walang promo o may problema, wala lang ipapakita.
+});
+
+
+// Ang listahan ng serbisyo ay bukas sa lahat, kahit hindi naka-login.
+runServer("getServices").then(function (services) {
+  var area = document.getElementById("servicesArea");
+
+  if (services.length == 0) {
+    area.innerHTML = '<div class="empty">No services listed yet.</div>';
+    return;
+  }
+
+  var rows = "";
+  for (var i = 0; i < services.length; i++) {
+    rows += "<tr>" +
+      "<td>" + escapeHtml(services[i][0]) + "</td>" +
+      '<td class="right">' + peso(services[i][1]) + "</td>" +
+      "</tr>";
+  }
+
+  area.innerHTML =
+    '<div class="table-wrap"><table>' +
+      '<thead><tr><th>Service</th><th class="right">Price</th></tr></thead>' +
+      "<tbody>" + rows + "</tbody>" +
+    "</table></div>";
+}).catch(function () {
+  document.getElementById("servicesArea").innerHTML =
+    '<div class="notice bad">Could not load the services. Make sure MySQL is running in XAMPP.</div>';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Create account — Supremo Barbershop</title>
+<link rel="icon" href="img/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <img class="logo-mark" src="img/logo.jpg" alt="Supremo Barbershop logo">
+      <div><div class="brand-name" data-shop-name>Supremo Barbershop</div></div>
+    </a>
+    <div class="header-actions">
+      <span class="muted small">Already have an account?</span>
+      <a class="btn ghost" href="login.html">Log in</a>
+    </div>
+  </div>
+</header>
+
+<main class="auth-page">
+  <div class="auth-box wide">
+    <div class="card">
+      <h2>Create an account</h2>
+      <p class="muted lead">For customers. Barber and admin accounts are created by the admin.</p>
+
+      <div id="bootstrapNotice" class="hidden" style="margin-top:18px;">
+        <div class="notice info">
+          There is no admin in the system yet. The first account created here will become an <strong>Admin</strong>.
+        </div>
+      </div>
+
+      <form id="registerForm" novalidate>
+        <div class="field-row">
+          <div>
+            <label for="fullName">Full name</label>
+            <input id="fullName" type="text" autocomplete="name" placeholder="Juan Dela Cruz">
+          </div>
+          <div>
+            <label for="username">Username</label>
+            <input id="username" type="text" autocomplete="username" placeholder="username or email">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="new-password" placeholder="password">
+            <div class="field-hint">At least 8 characters, with a letter and a number.</div>
+          </div>
+          <div>
+            <label for="phone">Mobile number</label>
+            <input id="phone" type="tel" data-phone maxlength="13" placeholder="09XX-XXX-XXXX">
+            <div class="phone-hint">Format: 09XX-XXX-XXXX</div>
+          </div>
+        </div>
+
+        <label for="secQ">Security question</label>
+        <select id="secQ">
+          <option value="">-- Choose a security question --</option>
+          <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+          <option value="What was your first pet's name?">What was your first pet's name?</option>
+          <option value="In what city were you born?">In what city were you born?</option>
+          <option value="What is your favorite movie?">What is your favorite movie?</option>
+          <option value="What was your high school name?">What was your high school name?</option>
+        </select>
+
+        <label for="secA">Answer</label>
+        <input id="secA" type="text" placeholder="Your answer">
+        <div class="field-hint">This is what you will use if you forget your password.</div>
+
+        <div class="form-actions">
+          <button class="btn block" id="registerBtn" type="submit">Create account</button>
+        </div>
+        <div id="registerMsg" class="msg"></div>
+      </form>
+
+      <div class="auth-foot">
+        Already have an account? <a href="login.html">Log in here</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/api.js"></script>
+<script>
+loadShopName();
+redirectIfLoggedIn();
+initPhoneInputs();
+
+// Kapag wala pang kahit isang admin sa database (bagong install),
+// ang kauna-unahang account na gagawin dito ang magiging admin.
+var firstAccountIsAdmin = false;
+
+runServer("hasAdmin").then(function (result) {
+  if (!result.hasAdmin) {
+    firstAccountIsAdmin = true;
+    document.getElementById("bootstrapNotice").classList.remove("hidden");
+  }
+}).catch(function () {
+  // Kapag hindi maabot ang server, customer pa rin ang default.
+});
+
+
+var registerForm = document.getElementById("registerForm");
+var registerMsg = document.getElementById("registerMsg");
+var registerBtn = document.getElementById("registerBtn");
+
+
+registerForm.onsubmit = async function (event) {
+  event.preventDefault();
+
+  var fullName = document.getElementById("fullName").value.trim();
+  var username = document.getElementById("username").value.trim();
+  var password = document.getElementById("password").value;
+  var phone = document.getElementById("phone").value.trim();
+  var question = document.getElementById("secQ").value;
+  var answer = document.getElementById("secA").value.trim();
+
+  if (fullName == "" || username == "" || password == "" || phone == ""
+      || question == "" || answer == "") {
+    setMsg(registerMsg, "Please fill in all fields and choose a security question.", "error");
+    return;
+  }
+
+  if (!isValidPhone(phone)) {
+    setMsg(registerMsg, "Invalid number format. Please use 09XX-XXX-XXXX.", "error");
+    return;
+  }
+
+  var problem = passwordProblem(password);
+  if (problem != "") {
+    setMsg(registerMsg, problem, "error");
+    return;
+  }
+
+  var role = "User";
+  if (firstAccountIsAdmin) {
+    role = "Admin";
+  }
+
+  registerBtn.disabled = true;
+  setMsg(registerMsg, "Registering...");
+
+  try {
+    var result = await runServer("registerUser", {
+      fullName: fullName,
+      username: username,
+      password: password,
+      phoneNumber: phone,
+      securityQuestion: question,
+      securityAnswer: answer,
+      role: role
+    });
+
+    if (result.success) {
+      registerForm.reset();
+      setMsg(registerMsg, "Registration complete. Taking you to the login page...", "ok");
+
+      // Saglit na paghintay para mabasa muna ang mensahe.
+      setTimeout(function () {
+        window.location.replace("login.html");
+      }, 1200);
+    } else {
+      setMsg(registerMsg, result.message || "Registration did not go through.", "error");
+      registerBtn.disabled = false;
+    }
+  } catch (error) {
+    showError(registerMsg, error);
+    registerBtn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>

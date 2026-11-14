@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Log in — Supremo Barbershop</title>
+<link rel="icon" href="img/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <img class="logo-mark" src="img/logo.jpg" alt="Supremo Barbershop logo">
+      <div><div class="brand-name" data-shop-name>Supremo Barbershop</div></div>
+    </a>
+    <div class="header-actions">
+      <span class="muted small">No account yet?</span>
+      <a class="btn ghost" href="register.html">Register</a>
+    </div>
+  </div>
+</header>
+
+<main class="auth-page">
+  <div class="auth-box">
+    <div class="card">
+      <h2>Log in</h2>
+      <p class="muted lead">One login page for customers, barbers, and admins.</p>
+
+      <form id="loginForm" novalidate>
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" placeholder="username or email">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="password">
+
+        <div class="form-actions">
+          <button class="btn block" id="loginBtn" type="submit">Log in</button>
+        </div>
+        <div id="loginMsg" class="msg"></div>
+      </form>
+
+      <div class="btn-row" style="justify-content:center;margin-top:6px;">
+        <a class="btn link" href="forgot-password.html">Forgot your password?</a>
+      </div>
+
+      <div class="auth-foot">
+        New here? <a href="register.html">Create a customer account</a>
+      </div>
+    </div>
+
+    <p class="muted small center-text" style="margin-top:16px;">
+      Barber accounts are created by the admin. Ask your admin if you do not have a login yet.
+    </p>
+  </div>
+</main>
+
+<script src="js/api.js"></script>
+<script>
+loadShopName();
+redirectIfLoggedIn();
+
+var loginForm = document.getElementById("loginForm");
+var loginMsg = document.getElementById("loginMsg");
+var loginBtn = document.getElementById("loginBtn");
+
+
+// Tumatakbo ito kapag pinindot ang Log in o pinindot ang Enter.
+loginForm.onsubmit = async function (event) {
+  // Para hindi mag-reload ang page.
+  event.preventDefault();
+
+  var username = document.getElementById("username").value.trim();
+  var password = document.getElementById("password").value;
+
+  if (username == "" || password == "") {
+    setMsg(loginMsg, "Enter your username and password.", "error");
+    return;
+  }
+
+  // I-disable muna ang button para hindi madoble ang pagpindot.
+  loginBtn.disabled = true;
+  setMsg(loginMsg, "Checking...");
+
+  try {
+    var result = await runServer("login", { username: username, password: password });
+
+    if (result.success) {
+      setMsg(loginMsg, "Welcome, " + result.fullName + "!", "ok");
+      window.location.replace("dashboard.html");
+    } else {
+      setMsg(loginMsg, result.message || "Incorrect username or password.", "error");
+      loginBtn.disabled = false;
+    }
+  } catch (error) {
+    showError(loginMsg, error);
+    loginBtn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>

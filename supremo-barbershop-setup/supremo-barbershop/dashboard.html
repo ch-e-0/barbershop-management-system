@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — Supremo Barbershop</title>
+<link rel="icon" href="img/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner header-wide">
+    <!-- Lumalabas lang sa tablet at phone. Binubuksan ang menu. -->
+    <button class="icon-btn menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+    </button>
+    <a class="brand" href="dashboard.html">
+      <img class="logo-mark" src="img/logo.jpg" alt="Supremo Barbershop logo">
+      <div>
+        <div class="brand-name" data-shop-name>Supremo Barbershop</div>
+        <div class="brand-sub" id="pageBreadcrumb">Dashboard</div>
+      </div>
+    </a>
+    <div class="header-actions">
+      <span class="badge role" id="roleBadge"></span>
+      <span class="badge" id="userBadge">Loading...</span>
+      <button class="btn ghost" id="logoutBtn" type="button">Log out</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-label">Menu</div>
+    <nav class="side-nav" id="sideNav"></nav>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <main class="content">
+    <div class="content-head" id="contentHead">
+      <h2 id="pageTitle">Dashboard</h2>
+      <p class="muted lead" id="pageSubtitle"></p>
+    </div>
+    <div id="content"><p class="muted">Loading...</p></div>
+  </main>
+</div>
+
+<!-- Reusable modal. Pinupunan ng laman ng bawat page. -->
+<div id="modal" class="modal-overlay hidden">
+  <div class="card modal-card" id="modalCard"></div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/account.js"></script>
+<script src="js/customer.js"></script>
+<script src="js/barber.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
